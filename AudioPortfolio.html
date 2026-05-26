@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Audio Engineering Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #c084fc;
+    --accent-dim: rgba(192,132,252,0.25);
+    --bg: #06010f;
+    --text: #fff;
+    --muted: rgba(255,255,255,0.4);
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* ── LAYERS ── */
+  #liq-bg {
+    position: fixed; inset: 0; z-index: 0;
+  }
+  #liq-bg canvas {
+    width: 100% !important; height: 100% !important; display: block;
+  }
+  #menu-layer {
+    position: fixed; inset: 0; z-index: 1;
+  }
+  #menu-layer canvas {
+    width: 100%; height: 100%; display: block; cursor: grab;
+  }
+  #menu-layer canvas:active { cursor: grabbing; }
+
+  .scanlines {
+    position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 2px,
+      rgba(0,0,0,0.045) 2px, rgba(0,0,0,0.045) 4px
+    );
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 44px 0;
+    pointer-events: auto;
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 1.35rem; letter-spacing: 0.18em;
+    color: var(--text);
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 30px; }
+  .nav-link {
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 0.68rem;
+    letter-spacing: 0.22em; color: var(--muted);
+    text-transform: uppercase; transition: color 0.25s;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    position: fixed; bottom: 0; left: 0; z-index: 10;
+    padding: 0 44px 36px;
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono); font-size: 0.63rem;
+    letter-spacing: 0.3em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 10px;
+    opacity: 0; animation: fadeUp 0.8s 0.3s forwards;
+  }
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 0.91; letter-spacing: 0.04em; color: var(--text);
+    opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
+  }
+  .hero-name span { color: var(--accent); }
+  .hero-sub {
+    font-family: var(--font-mono); font-size: 0.72rem;
+    color: var(--muted); margin-top: 16px;
+    max-width: 340px; line-height: 1.75; letter-spacing: 0.05em;
+    opacity: 0; animation: fadeUp 0.8s 0.7s forwards;
+  }
+
+  /* ── BOTTOM BAR ── */
+  .bottom-bar {
+    position: fixed; bottom: 0; right: 0; z-index: 10;
+    padding: 0 44px 32px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+  .bb-hint {
+    font-family: var(--font-mono); font-size: 0.58rem;
+    letter-spacing: 0.22em; color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+  }
+  .bb-count {
+    font-family: var(--font-display); font-size: 1.2rem;
+    letter-spacing: 0.1em; color: rgba(255,255,255,0.12);
+  }
+
+  /* ── SIDE INFO (right panel) ── */
+  .side-info {
+    position: fixed; right: 44px; top: 50%;
+    transform: translateY(-50%);
+    z-index: 10; width: 220px;
+    transition: opacity 0.4s, transform 0.4s;
+    pointer-events: none;
+  }
+  .side-info.hide { opacity: 0; transform: translateY(-46%) translateX(14px); }
+  .si-line { width: 32px; height: 1px; background: var(--accent); margin-bottom: 18px; }
+  .si-num {
+    font-family: var(--font-mono); font-size: 0.58rem;
+    letter-spacing: 0.28em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .si-title {
+    font-family: var(--font-display); font-size: 1.75rem;
+    letter-spacing: 0.07em; color: var(--text);
+    line-height: 1; margin-bottom: 12px;
+  }
+  .si-desc {
+    font-family: var(--font-mono); font-size: 0.63rem;
+    line-height: 1.75; color: var(--muted); margin-bottom: 16px;
+  }
+  .si-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .si-tag {
+    font-family: var(--font-mono); font-size: 0.53rem;
+    letter-spacing: 0.14em; color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 3px 8px; border-radius: 2px; text-transform: uppercase;
+  }
+
+  /* ── ABOUT OVERLAY ── */
+  .about-overlay {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(6,1,15,0.92);
+    backdrop-filter: blur(14px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .about-overlay.show { opacity: 1; pointer-events: auto; }
+  .about-card {
+    max-width: 560px; width: 90%;
+    border: 1px solid var(--accent-dim);
+    padding: 52px 48px; position: relative;
+  }
+  .about-close {
+    position: absolute; top: 20px; right: 26px;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 0.68rem;
+    color: var(--muted); letter-spacing: 0.2em;
+    transition: color 0.2s;
+  }
+  .about-close:hover { color: var(--accent); }
+  .about-eyebrow {
+    font-family: var(--font-mono); font-size: 0.6rem;
+    letter-spacing: 0.3em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  .about-title {
+    font-family: var(--font-display); font-size: 3rem;
+    letter-spacing: 0.06em; color: var(--text);
+    line-height: 1; margin-bottom: 24px;
+  }
+  .about-body {
+    font-family: var(--font-mono); font-size: 0.7rem;
+    line-height: 1.9; color: var(--muted);
+  }
+  .about-skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  .about-skill {
+    font-family: var(--font-mono); font-size: 0.58rem;
+    letter-spacing: 0.12em; color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 5px 12px; border-radius: 2px; text-transform: uppercase;
+  }
+
+  /* ── ACTIVE ITEM POPUP (bottom center) ── */
+  .active-popup {
+    position: fixed; bottom: 64px; left: 50%;
+    transform: translateX(-50%) translateY(0);
+    z-index: 10; text-align: center;
+    transition: opacity 0.4s, transform 0.35s;
+    pointer-events: none;
+  }
+  .active-popup.hidden {
+    opacity: 0; transform: translateX(-50%) translateY(10px);
+  }
+  .active-popup.visible { opacity: 1; }
+  .ap-tag {
+    font-family: var(--font-mono); font-size: 0.55rem;
+    letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase;
+    display: block; margin-bottom: 4px;
+  }
+  .ap-title {
+    font-family: var(--font-display); font-size: 2rem;
+    letter-spacing: 0.08em; color: var(--text); line-height: 1;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 20px 22px 0; }
+    .hero { padding: 0 22px 28px; }
+    .side-info { display: none; }
+    .bottom-bar { padding: 0 22px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LAYER 0: LiquidEther background -->
+<div id="liq-bg"></div>
+
+<!-- LAYER 1: InfiniteMenu -->
+<div id="menu-layer">
+  <canvas id="im-canvas"></canvas>
+  <div class="active-popup hidden" id="active-popup">
+    <span class="ap-tag">Selected</span>
+    <div class="ap-title" id="ap-title"></div>
+  </div>
+</div>
+
+<!-- Scanlines -->
+<div class="scanlines"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">AUDIO<span>.</span>STUDIO</div>
+  <div class="nav-links">
+    <button class="nav-link active" id="btn-work">Work</button>
+    <button class="nav-link" id="btn-about">About</button>
+    <button class="nav-link" onclick="window.location='mailto:you@email.com'">Contact</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <p class="hero-eyebrow">Audio Engineering Portfolio</p>
+  <h1 class="hero-name">YOUR<br>NAME<span>.</span></h1>
+  <p class="hero-sub">BSc Audio Engineering · Finals Showcase<br>Drag the sphere to explore projects.</p>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <span class="bb-hint">↻ Drag to explore</span>
+  <span class="bb-count" id="bb-count">06 Projects</span>
+</div>
+
+<!-- SIDE INFO PANEL -->
+<div class="side-info hide" id="side-info">
+  <div class="si-line"></div>
+  <p class="si-num">Selected Project</p>
+  <h2 class="si-title" id="si-title"></h2>
+  <p class="si-desc" id="si-desc"></p>
+  <div class="si-tags" id="si-tags"></div>
+</div>
+
+<!-- ABOUT OVERLAY -->
+<div class="about-overlay" id="about-overlay">
+  <div class="about-card">
+    <button class="about-close" id="about-close">[ CLOSE ]</button>
+    <p class="about-eyebrow">About Me</p>
+    <h2 class="about-title">Sound.<br>Craft.<br>Detail.</h2>
+    <p class="about-body">
+      I'm a final-year Audio Engineering student with a passion for capturing sound in all its dimensions — from intimate studio sessions to expansive field recordings. This portfolio collects my best work across mixing, mastering, foley, and live performance.
+    </p>
+    <div class="about-skills">
+      <span class="about-skill">Pro Tools</span>
+      <span class="about-skill">Ableton Live</span>
+      <span class="about-skill">iZotope RX</span>
+      <span class="about-skill">Logic Pro</span>
+      <span class="about-skill">Foley</span>
+      <span class="about-skill">Field Recording</span>
+      <span class="about-skill">Mastering</span>
+      <span class="about-skill">Live Sound</span>
+    </div>
+  </div>
+</div>
+
+<!-- THREE.js for LiquidEther -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- gl-matrix for InfiniteMenu -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   PROJECT DATA  — edit this!
+═══════════════════════════════════════════ */
+const PROJECTS = [
+  { image:'https://picsum.photos/seed/liveA/500/500', title:'Live Mix Vol. 1',    description:'Club-ready house set recorded live at Studio A', tags:['Live Mix','House','Recorded'] },
+  { image:'https://picsum.photos/seed/foleyB/500/500', title:'Foley Design',       description:'Environmental sound design for short film "Dusk"',  tags:['Foley','Film','Sound Design'] },
+  { image:'https://picsum.photos/seed/master/500/500', title:'Mastering: EP',      description:'Full mastering chain on a 6-track indie EP',          tags:['Mastering','Indie','Loudness'] },
+  { image:'https://picsum.photos/seed/podX/500/500',   title:'Podcast Suite',      description:'Recording, editing & noise reduction — 12 episodes',  tags:['Podcast','Editing','Post'] },
+  { image:'https://picsum.photos/seed/field9/500/500', title:'Field Recording',    description:'Ambisonic capture in Batangas rainforest',            tags:['Field Rec','Spatial','Ambisonic'] },
+  { image:'https://picsum.photos/seed/band7/500/500',  title:'Band Session',       description:'Full tracking & mixing of a 4-piece rock band',       tags:['Recording','Mixing','Rock'] },
+];
+document.getElementById('bb-count').textContent =
+  PROJECTS.length.toString().padStart(2,'0') + ' Projects';
+
+
+/* ═══════════════════════════════════════════
+   LIQUID ETHER  (Three.js — no imports)
+═══════════════════════════════════════════ */
+(function initLiquidEther() {
+  const container = document.getElementById('liq-bg');
+
+  /* ── palette texture ── */
+  const COLORS = ['#06010f','#1a0533','#5227FF','#9f5ff0','#FF9FFC'];
+  function makePaletteTexture(stops) {
+    const data = new Uint8Array(stops.length * 4);
+    stops.forEach((hex, i) => {
+      const c = new THREE.Color(hex);
+      data[i*4]   = Math.round(c.r*255);
+      data[i*4+1] = Math.round(c.g*255);
+      data[i*4+2] = Math.round(c.b*255);
+      data[i*4+3] = 255;
+    });
+    const t = new THREE.DataTexture(data, stops.length, 1, THREE.RGBAFormat);
+    t.magFilter = t.minFilter = THREE.LinearFilter;
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    t.generateMipmaps = false; t.needsUpdate = true;
+    return t;
+  }
+  const palTex = makePaletteTexture(COLORS);
+  const bgVec4 = new THREE.Vector4(0,0,0,0);
+
+  /* ── common ── */
+  let width=1, height=1;
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.autoClear = false;
+  renderer.setClearColor(0x000000, 0);
+  renderer.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+  container.appendChild(renderer.domElement);
+  const clock = new THREE.Clock(); clock.start();
+  let time=0, delta=0;
+
+  function resize() {
+    const r = container.getBoundingClientRect();
+    width  = Math.max(1, Math.floor(r.width));
+    height = Math.max(1, Math.floor(r.height));
+    renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+    renderer.setSize(width, height);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* ── mouse ── */
+  const coords = new THREE.Vector2(), coords_old = new THREE.Vector2(), diff = new THREE.Vector2();
+  let isAutoActive = false, isHoverInside = false;
+  const autoIntensity = 2.5;
+
+  /* auto-driver */
+  let autoActive = false, autoLastTime = performance.now(), autoActivationTime = 0;
+  const autoCurrent = new THREE.Vector2(0,0), autoTarget = new THREE.Vector2();
+  const autoSpeed = 0.35, autoRampMs = 600, autoResumeDelay = 2000;
+  let lastUserInteraction = performance.now();
+  function pickAutoTarget() { autoTarget.set((Math.random()*2-1)*0.8,(Math.random()*2-1)*0.8); }
+  pickAutoTarget();
+
+  window.addEventListener('mousemove', e => {
+    const r = container.getBoundingClientRect();
+    isHoverInside = e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+    if (!isHoverInside) return;
+    lastUserInteraction = performance.now();
+    autoActive = false; isAutoActive = false;
+    const nx=(e.clientX-r.left)/r.width, ny=(e.clientY-r.top)/r.height;
+    coords.set(nx*2-1, -(ny*2-1));
+  });
+
+  function updateAuto() {
+    const now = performance.now();
+    if (now - lastUserInteraction < autoResumeDelay || isHoverInside) { autoActive=false; isAutoActive=false; return; }
+    if (!autoActive) { autoActive=true; autoCurrent.copy(coords); autoLastTime=now; autoActivationTime=now; }
+    isAutoActive = true;
+    let dt = Math.min((now-autoLastTime)/1000, 0.2); autoLastTime=now;
+    const dir = new THREE.Vector2().subVectors(autoTarget, autoCurrent);
+    const dist = dir.length();
+    if (dist < 0.01) { pickAutoTarget(); return; }
+    dir.normalize();
+    const t = Math.min(1,(now-autoActivationTime)/autoRampMs);
+    const ramp = t*t*(3-2*t);
+    const step = autoSpeed * dt * ramp;
+    autoCurrent.addScaledVector(dir, Math.min(step,dist));
+    coords.set(autoCurrent.x, autoCurrent.y);
+  }
+
+  /* ── shaders ── */
+  const face_vert = `attribute vec3 position;uniform vec2 px;uniform vec2 boundarySpace;varying vec2 uv;precision highp float;void main(){vec3 pos=position;vec2 scale=1.0-boundarySpace*2.0;pos.xy=pos.xy*scale;uv=vec2(0.5)+(pos.xy)*0.5;gl_Position=vec4(pos,1.0);}`;
+  const line_vert = `attribute vec3 position;uniform vec2 px;precision highp float;varying vec2 uv;void main(){vec3 pos=position;uv=0.5+pos.xy*0.5;vec2 n=sign(pos.xy);pos.xy=abs(pos.xy)-px*1.0;pos.xy*=n;gl_Position=vec4(pos,1.0);}`;
+  const mouse_vert= `precision highp float;attribute vec3 position;attribute vec2 uv;uniform vec2 center;uniform vec2 scale;uniform vec2 px;varying vec2 vUv;void main(){vec2 pos=position.xy*scale*2.0*px+center;vUv=uv;gl_Position=vec4(pos,0.0,1.0);}`;
+  const adv_frag  = `precision highp float;uniform sampler2D velocity;uniform float dt;uniform bool isBFECC;uniform vec2 fboSize;uniform vec2 px;varying vec2 uv;void main(){vec2 ratio=max(fboSize.x,fboSize.y)/fboSize;if(!isBFECC){vec2 vel=texture2D(velocity,uv).xy;gl_FragColor=vec4(texture2D(velocity,uv-vel*dt*ratio).xy,0,0);}else{vec2 sn=uv,vo=texture2D(velocity,uv).xy,so=sn-vo*dt*ratio,vn1=texture2D(velocity,so).xy,sn2=so+vn1*dt*ratio,err=sn2-sn,sn3=sn-err/2.0,v2=texture2D(velocity,sn3).xy,so2=sn3-v2*dt*ratio;gl_FragColor=vec4(texture2D(velocity,so2).xy,0,0);}}`;
+  const col_frag  = `precision highp float;uniform sampler2D velocity;uniform sampler2D palette;uniform vec4 bgColor;varying vec2 uv;void main(){vec2 vel=texture2D(velocity,uv).xy;float lenv=clamp(length(vel),0.0,1.0);vec3 c=texture2D(palette,vec2(lenv,.5)).rgb;gl_FragColor=vec4(mix(bgColor.rgb,c,lenv),mix(bgColor.a,1.0,lenv));}`;
+  const div_frag  = `precision highp float;uniform sampler2D velocity;uniform float dt;uniform vec2 px;varying vec2 uv;void main(){float x0=texture2D(velocity,uv-vec2(px.x,0)).x,x1=texture2D(velocity,uv+vec2(px.x,0)).x,y0=texture2D(velocity,uv-vec2(0,px.y)).y,y1=texture2D(velocity,uv+vec2(0,px.y)).y;gl_FragColor=vec4((x1-x0+y1-y0)/2.0/dt);}`;
+  const ext_frag  = `precision highp float;uniform vec2 force;uniform vec2 center;uniform vec2 scale;uniform vec2 px;varying vec2 vUv;void main(){vec2 c=(vUv-.5)*2.;float d=1.-min(length(c),1.);gl_FragColor=vec4(force*d*d,0,1);}`;
+  const poi_frag  = `precision highp float;uniform sampler2D pressure;uniform sampler2D divergence;uniform vec2 px;varying vec2 uv;void main(){float p0=texture2D(pressure,uv+vec2(px.x*2,0)).r,p1=texture2D(pressure,uv-vec2(px.x*2,0)).r,p2=texture2D(pressure,uv+vec2(0,px.y*2)).r,p3=texture2D(pressure,uv-vec2(0,px.y*2)).r,div=texture2D(divergence,uv).r;gl_FragColor=vec4((p0+p1+p2+p3)/4.0-div);}`;
+  const prs_frag  = `precision highp float;uniform sampler2D pressure;uniform sampler2D velocity;uniform vec2 px;uniform float dt;varying vec2 uv;void main(){float p0=texture2D(pressure,uv+vec2(px.x,0)).r,p1=texture2D(pressure,uv-vec2(px.x,0)).r,p2=texture2D(pressure,uv+vec2(0,px.y)).r,p3=texture2D(pressure,uv-vec2(0,px.y)).r;vec2 v=texture2D(velocity,uv).xy-vec2(p0-p1,p2-p3)*.5*dt;gl_FragColor=vec4(v,0,1);}`;
+
+  function makePass(vsh,fsh,uniforms) {
+    const sc = new THREE.Scene(), cam = new THREE.Camera();
+    const mat = new THREE.RawShaderMaterial({ vertexShader:vsh, fragmentShader:fsh, uniforms });
+    sc.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), mat));
+    return { scene:sc, camera:cam, material:mat, uniforms:mat.uniforms,
+      render(dst){ renderer.setRenderTarget(dst||null); renderer.render(sc,cam); renderer.setRenderTarget(null); } };
+  }
+
+  const RES = 0.5, MOUSE_FORCE=22, CURSOR_SIZE=110, DT=0.014, ITER_P=32, ITER_V=32;
+  let fboW=1, fboH=1;
+  const cellScale = new THREE.Vector2();
+
+  function calcFBO() {
+    fboW = Math.max(1,Math.round(RES*width));
+    fboH = Math.max(1,Math.round(RES*height));
+    cellScale.set(1/fboW, 1/fboH);
+  }
+  calcFBO();
+
+  function makeFBO(w,h) {
+    const isIOS = /(iPad|iPhone|iPod)/i.test(navigator.userAgent);
+    return new THREE.WebGLRenderTarget(w,h,{
+      type: isIOS ? THREE.HalfFloatType : THREE.FloatType,
+      depthBuffer:false, stencilBuffer:false,
+      minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter,
+      wrapS:THREE.ClampToEdgeWrapping, wrapT:THREE.ClampToEdgeWrapping
+    });
+  }
+
+  let v0=makeFBO(fboW,fboH), v1=makeFBO(fboW,fboH),
+      vv0=makeFBO(fboW,fboH), vv1=makeFBO(fboW,fboH),
+      divF=makeFBO(fboW,fboH), p0=makeFBO(fboW,fboH), p1=makeFBO(fboW,fboH);
+
+  /* advection */
+  const advScene = new THREE.Scene(), advCam = new THREE.Camera();
+  const advUni = { boundarySpace:{value:cellScale}, px:{value:cellScale}, fboSize:{value:new THREE.Vector2(fboW,fboH)}, velocity:{value:v0.texture}, dt:{value:DT}, isBFECC:{value:true} };
+  const advMat = new THREE.RawShaderMaterial({ vertexShader:face_vert, fragmentShader:adv_frag, uniforms:advUni });
+  advScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), advMat));
+  const bndG = new THREE.BufferGeometry();
+  bndG.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1,-1,0,-1,1,0,-1,1,0,1,1,0,1,1,0,1,-1,0,1,-1,0,-1,-1,0]),3));
+  const bndLine = new THREE.LineSegments(bndG, new THREE.RawShaderMaterial({ vertexShader:line_vert, fragmentShader:adv_frag, uniforms:advUni }));
+  bndLine.visible = false; advScene.add(bndLine);
+  function renderAdv(dst){ renderer.setRenderTarget(dst); renderer.render(advScene,advCam); renderer.setRenderTarget(null); }
+
+  /* external force */
+  const extScene = new THREE.Scene(), extCam = new THREE.Camera();
+  const extUni = { px:{value:cellScale}, force:{value:new THREE.Vector2()}, center:{value:new THREE.Vector2()}, scale:{value:new THREE.Vector2(CURSOR_SIZE,CURSOR_SIZE)} };
+  const extMesh = new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.RawShaderMaterial({ vertexShader:mouse_vert, fragmentShader:ext_frag, blending:THREE.AdditiveBlending, depthWrite:false, uniforms:extUni }));
+  extScene.add(extMesh);
+  function renderExt(dst){ renderer.setRenderTarget(dst); renderer.render(extScene,extCam); renderer.setRenderTarget(null); }
+
+  /* divergence */
+  const divPass = makePass(face_vert, div_frag, { boundarySpace:{value:cellScale}, velocity:{value:v1.texture}, px:{value:cellScale}, dt:{value:DT} });
+
+  /* poisson */
+  const poiPass = makePass(face_vert, poi_frag, { boundarySpace:{value:cellScale}, pressure:{value:p0.texture}, divergence:{value:divF.texture}, px:{value:cellScale} });
+
+  /* pressure */
+  const prsPass = makePass(face_vert, prs_frag, { boundarySpace:{value:cellScale}, pressure:{value:p0.texture}, velocity:{value:v0.texture}, px:{value:cellScale}, dt:{value:DT} });
+
+  /* output */
+  const outScene = new THREE.Scene(), outCam = new THREE.Camera();
+  const outMat = new THREE.RawShaderMaterial({ vertexShader:face_vert, fragmentShader:col_frag, transparent:true, depthWrite:false,
+    uniforms:{ velocity:{value:v0.texture}, boundarySpace:{value:new THREE.Vector2()}, palette:{value:palTex}, bgColor:{value:bgVec4} } });
+  outScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), outMat));
+
+  window.addEventListener('resize', () => {
+    resize(); calcFBO();
+    [v0,v1,vv0,vv1,divF,p0,p1].forEach(f=>f.setSize(fboW,fboH));
+    advUni.fboSize.value.set(fboW,fboH);
+  });
+
+  function simulate() {
+    /* advection */
+    advUni.velocity.value = v0.texture;
+    advUni.px.value = cellScale;
+    renderAdv(v1);
+
+    /* external force */
+    const fx = (diff.x/2)*MOUSE_FORCE, fy = (diff.y/2)*MOUSE_FORCE;
+    const csx = CURSOR_SIZE*cellScale.x, csy = CURSOR_SIZE*cellScale.y;
+    const cx = Math.min(Math.max(coords.x,-1+csx+cellScale.x*2),1-csx-cellScale.x*2);
+    const cy = Math.min(Math.max(coords.y,-1+csy+cellScale.y*2),1-csy-cellScale.y*2);
+    extUni.force.value.set(fx,fy);
+    extUni.center.value.set(cx,cy);
+    renderExt(v1);
+
+    /* divergence */
+    divPass.uniforms.velocity.value = v1.texture;
+    divPass.render(divF);
+
+    /* poisson */
+    let pi=p0, po=p1;
+    for(let i=0;i<ITER_P;i++){
+      poiPass.uniforms.pressure.value = pi.texture;
+      poiPass.render(po);
+      [pi,po]=[po,pi];
+    }
+
+    /* pressure */
+    prsPass.uniforms.velocity.value = v1.texture;
+    prsPass.uniforms.pressure.value = pi.texture;
+    prsPass.render(v0);
+
+    /* output */
+    outMat.uniforms.velocity.value = v0.texture;
+    renderer.setRenderTarget(null);
+    renderer.render(outScene,outCam);
+  }
+
+  function loop() {
+    delta = clock.getDelta(); time += delta;
+    updateAuto();
+    diff.subVectors(coords, coords_old);
+    coords_old.copy(coords);
+    if (isAutoActive) diff.multiplyScalar(autoIntensity);
+    simulate();
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+
+/* ═══════════════════════════════════════════
+   INFINITE MENU  (gl-matrix — no imports)
+═══════════════════════════════════════════ */
+(function initInfiniteMenu() {
+  const canvas = document.getElementById('im-canvas');
+  const popup  = document.getElementById('active-popup');
+  const apTitle= document.getElementById('ap-title');
+  const sideInfo= document.getElementById('side-info');
+  const siTitle = document.getElementById('si-title');
+  const siDesc  = document.getElementById('si-desc');
+  const siTags  = document.getElementById('si-tags');
+
+  function setActiveProject(idx) {
+    const p = PROJECTS[idx % PROJECTS.length];
+    apTitle.textContent = p.title;
+    popup.classList.remove('hidden'); popup.classList.add('visible');
+    siTitle.textContent = p.title;
+    siDesc.textContent  = p.description;
+    siTags.innerHTML    = p.tags.map(t=>`<span class="si-tag">${t}</span>`).join('');
+    sideInfo.classList.remove('hide');
+  }
+  setActiveProject(0);
+
+  const { mat4, quat, vec2, vec3 } = glMatrix;
+
+  /* ── shaders ── */
+  const DISC_VERT = `#version 300 es
+uniform mat4 uWorldMatrix,uViewMatrix,uProjectionMatrix;
+uniform vec3 uCameraPosition;
+uniform vec4 uRotationAxisVelocity;
+in vec3 aModelPosition,aModelNormal;in vec2 aModelUvs;in mat4 aInstanceMatrix;
+out vec2 vUvs;out float vAlpha;flat out int vInstanceId;
+void main(){
+  vec4 wp=uWorldMatrix*aInstanceMatrix*vec4(aModelPosition,1.);
+  vec3 cp=(uWorldMatrix*aInstanceMatrix*vec4(0,0,0,1)).xyz;
+  float radius=length(cp);
+  if(gl_VertexID>0){
+    vec3 ra=uRotationAxisVelocity.xyz,sd=normalize(cross(cp,ra)),rv=normalize(wp.xyz-cp);
+    float st=dot(sd,rv),rv2=min(.15,uRotationAxisVelocity.w*15.),ia=min(0.,abs(st)-1.);
+    st=rv2*sign(st)*abs(ia*ia*ia+1.);wp.xyz+=sd*st;
+  }
+  wp.xyz=radius*normalize(wp.xyz);
+  gl_Position=uProjectionMatrix*uViewMatrix*wp;
+  vAlpha=smoothstep(.5,1.,normalize(wp.xyz).z)*.9+.1;
+  vUvs=aModelUvs;vInstanceId=gl_InstanceID;
+}`;
+  const DISC_FRAG = `#version 300 es
+precision highp float;
+uniform sampler2D uTex;uniform int uItemCount,uAtlasSize;
+out vec4 outColor;in vec2 vUvs;in float vAlpha;flat in int vInstanceId;
+void main(){
+  int ii=vInstanceId%uItemCount,cx=ii%uAtlasSize,cy=ii/uAtlasSize;
+  vec2 cs=vec2(1)/vec2(float(uAtlasSize)),co=vec2(float(cx),float(cy))*cs;
+  ivec2 ts=textureSize(uTex,0);
+  float ia=float(ts.x)/float(ts.y),sc=max(ia,1./ia);
+  vec2 st=vec2(vUvs.x,1.-vUvs.y);
+  st=(st-.5)*sc+.5;st=clamp(st,0.,1.);st=st*cs+co;
+  outColor=texture(uTex,st);outColor.a*=vAlpha;
+}`;
+
+  function mkShader(gl,type,src){ const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null;}return s; }
+  function mkProg(gl,vs,fs,attribs){
+    const p=gl.createProgram();
+    const s1=mkShader(gl,gl.VERTEX_SHADER,vs), s2=mkShader(gl,gl.FRAGMENT_SHADER,fs);
+    if(s1)gl.attachShader(p,s1);if(s2)gl.attachShader(p,s2);
+    if(attribs)for(const [n,i] of Object.entries(attribs))gl.bindAttribLocation(p,i,n);
+    gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(p));return null;}
+    return p;
+  }
+  function mkBuf(gl,data,usage){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,usage);gl.bindBuffer(gl.ARRAY_BUFFER,null);return b;}
+  function mkTex(gl){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t;}
+
+  /* ── geometry helpers ── */
+  class Face{constructor(a,b,c){this.a=a;this.b=b;this.c=c;}}
+  class Vert{constructor(x,y,z){this.pos=vec3.fromValues(x,y,z);this.uv=vec2.create();}}
+  class Geo{
+    constructor(){this.verts=[];this.faces=[];}
+    addV(...a){for(let i=0;i<a.length;i+=3)this.verts.push(new Vert(a[i],a[i+1],a[i+2]));return this;}
+    addF(...a){for(let i=0;i<a.length;i+=3)this.faces.push(new Face(a[i],a[i+1],a[i+2]));return this;}
+    get last(){return this.verts[this.verts.length-1];}
+    getMid(a,b,cache){const k=a<b?`${b}_${a}`:`${a}_${b}`;if(k in cache)return cache[k];const va=this.verts[a].pos,vb=this.verts[b].pos,n=this.verts.length;cache[k]=n;this.addV((va[0]+vb[0])*.5,(va[1]+vb[1])*.5,(va[2]+vb[2])*.5);return n;}
+    subdivide(d=1){const cache={};let f=this.faces;for(let d2=0;d2<d;d2++){const nf=[];f.forEach(face=>{const mAB=this.getMid(face.a,face.b,cache),mBC=this.getMid(face.b,face.c,cache),mCA=this.getMid(face.c,face.a,cache);nf.push(new Face(face.a,mAB,mCA),new Face(face.b,mBC,mAB),new Face(face.c,mCA,mBC),new Face(mAB,mBC,mCA));});f=nf;}this.faces=f;return this;}
+    spherize(r=1){this.verts.forEach(v=>{vec3.normalize(v.pos,v.pos);vec3.scale(v.pos,v.pos,r);});return this;}
+    get positions(){return new Float32Array(this.verts.flatMap(v=>Array.from(v.pos)));}
+    get uvs(){return new Float32Array(this.verts.flatMap(v=>Array.from(v.uv)));}
+    get indices(){return new Uint16Array(this.faces.flatMap(f=>[f.a,f.b,f.c]));}
+  }
+
+  /* icosahedron */
+  const ico = new Geo();
+  const t=Math.sqrt(5)*.5+.5;
+  ico.addV(-1,t,0,1,t,0,-1,-t,0,1,-t,0,0,-1,t,0,1,t,0,-1,-t,0,1,-t,t,0,-1,t,0,1,-t,0,-1,-t,0,1)
+     .addF(0,11,5,0,5,1,0,1,7,0,7,10,0,10,11,1,5,9,5,11,4,11,10,2,10,7,6,7,1,8,3,9,4,3,4,2,3,2,6,3,6,8,3,8,9,4,9,5,2,4,11,6,2,10,8,6,7,9,8,1)
+     .subdivide(1).spherize(2);
+  const instancePositions = ico.verts.map(v=>v.pos);
+  const DISC_COUNT = ico.verts.length;
+
+  /* disc geometry */
+  const disc = new Geo();
+  const STEPS=56, alpha=(2*Math.PI)/STEPS;
+  disc.addV(0,0,0); disc.last.uv[0]=.5; disc.last.uv[1]=.5;
+  for(let i=0;i<STEPS;i++){
+    const x=Math.cos(alpha*i),y=Math.sin(alpha*i);
+    disc.addV(x,y,0); disc.last.uv[0]=x*.5+.5; disc.last.uv[1]=y*.5+.5;
+    if(i>0)disc.addF(0,i,i+1);
+  }
+  disc.addF(0,STEPS,1);
+
+  /* ── WebGL setup ── */
+  const gl = canvas.getContext('webgl2',{antialias:true,alpha:true});
+  if(!gl){console.error('No WebGL2');return;}
+
+  const prog = mkProg(gl,DISC_VERT,DISC_FRAG,{aModelPosition:0,aModelNormal:1,aModelUvs:2,aInstanceMatrix:3});
+  const locs = {
+    aModelPosition:   gl.getAttribLocation(prog,'aModelPosition'),
+    aModelUvs:        gl.getAttribLocation(prog,'aModelUvs'),
+    aInstanceMatrix:  gl.getAttribLocation(prog,'aInstanceMatrix'),
+    uWorldMatrix:     gl.getUniformLocation(prog,'uWorldMatrix'),
+    uViewMatrix:      gl.getUniformLocation(prog,'uViewMatrix'),
+    uProjectionMatrix:gl.getUniformLocation(prog,'uProjectionMatrix'),
+    uCameraPosition:  gl.getUniformLocation(prog,'uCameraPosition'),
+    uRotationAxisVelocity:gl.getUniformLocation(prog,'uRotationAxisVelocity'),
+    uTex:             gl.getUniformLocation(prog,'uTex'),
+    uFrames:          gl.getUniformLocation(prog,'uFrames'),
+    uItemCount:       gl.getUniformLocation(prog,'uItemCount'),
+    uAtlasSize:       gl.getUniformLocation(prog,'uAtlasSize'),
+  };
+
+  /* VAO */
+  const discPositions=disc.positions, discUvs=disc.uvs, discIndices=disc.indices;
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  const posBuf=mkBuf(gl,discPositions,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER,posBuf); gl.enableVertexAttribArray(locs.aModelPosition); gl.vertexAttribPointer(locs.aModelPosition,3,gl.FLOAT,false,0,0);
+  const uvBuf=mkBuf(gl,discUvs,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER,uvBuf); gl.enableVertexAttribArray(locs.aModelUvs); gl.vertexAttribPointer(locs.aModelUvs,2,gl.FLOAT,false,0,0);
+  const idxBuf=gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,discIndices,gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
+
+  /* instance matrices */
+  const matsArray=new Float32Array(DISC_COUNT*16);
+  const matsViews=[];
+  for(let i=0;i<DISC_COUNT;i++){const v=new Float32Array(matsArray.buffer,i*64,16);v.set(mat4.create());matsViews.push(v);}
+  const instBuf=gl.createBuffer();
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER,instBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,matsArray.byteLength,gl.DYNAMIC_DRAW);
+  for(let j=0;j<4;j++){const loc=locs.aInstanceMatrix+j;gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,4,gl.FLOAT,false,64,j*16);gl.vertexAttribDivisor(loc,1);}
+  gl.bindBuffer(gl.ARRAY_BUFFER,null); gl.bindVertexArray(null);
+
+  /* texture atlas */
+  const tex=mkTex(gl);
+  const atlasSize=Math.ceil(Math.sqrt(Math.max(1,PROJECTS.length)));
+  const atlasCv=document.createElement('canvas');
+  const atlasCtx=atlasCv.getContext('2d');
+  const CELL=512; atlasCv.width=atlasSize*CELL; atlasCv.height=atlasSize*CELL;
+  Promise.all(PROJECTS.map(p=>new Promise(res=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>res(img);img.onerror=()=>res(null);img.src=p.image;}))).then(imgs=>{
+    imgs.forEach((img,i)=>{if(!img)return;const x=(i%atlasSize)*CELL,y=Math.floor(i/atlasSize)*CELL;atlasCtx.drawImage(img,x,y,CELL,CELL);});
+    gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);gl.generateMipmap(gl.TEXTURE_2D);
+  });
+
+  /* ── camera & arcball ── */
+  const camera = {
+    pos:      vec3.fromValues(0,0,3),
+    up:       vec3.fromValues(0,1,0),
+    near:0.1, far:40,
+    view:     mat4.create(),
+    proj:     mat4.create(),
+    mat:      mat4.create(),
+  };
+  const SPHERE_R=2;
+
+  /* arcball */
+  const orientation=quat.create(), pointerRot=quat.create(), identQ=quat.create();
+  const pointerPos=vec2.create(), prevPointerPos=vec2.create();
+  let isDown=false, rotVelocity=0, smoothRotVel=0;
+  const rotAxis=vec3.fromValues(1,0,0);
+  let snapTarget=null;
+  const snapDir=vec3.fromValues(0,0,-1);
+  const _combinedQ=quat.create();
+  let _rotV=0;
+
+  canvas.addEventListener('pointerdown',e=>{vec2.set(pointerPos,e.clientX,e.clientY);vec2.copy(prevPointerPos,pointerPos);isDown=true;});
+  canvas.addEventListener('pointerup',()=>isDown=false);
+  canvas.addEventListener('pointerleave',()=>isDown=false);
+  canvas.addEventListener('pointermove',e=>{if(isDown)vec2.set(pointerPos,e.clientX,e.clientY);});
+  canvas.style.touchAction='none';
+
+  function project(pos){
+    const r=2,w=canvas.clientWidth,h=canvas.clientHeight,s=Math.max(w,h)-1;
+    const x=(2*pos[0]-w-1)/s, y=(2*pos[1]-h-1)/s;
+    let z; const xySq=x*x+y*y,rSq=r*r;
+    if(xySq<=rSq/2)z=Math.sqrt(rSq-xySq); else z=rSq/Math.sqrt(xySq);
+    return vec3.fromValues(-x,y,z);
+  }
+
+  function quatFromVecs(a,b,out,af=1){
+    const ax=vec3.cross(vec3.create(),a,b); vec3.normalize(ax,ax);
+    const d=Math.max(-1,Math.min(1,vec3.dot(a,b)));
+    quat.setAxisAngle(out,ax,Math.acos(d)*af);
+  }
+
+  let movementActive=false;
+  const TFD=1000/60;
+
+  function updateArcball(dt){
+    const ts=dt/TFD+0.00001; let af=ts;
+    const snapQ=quat.create();
+    if(isDown){
+      const INT=0.3*ts, AA=5/ts;
+      const mp=vec2.sub(vec2.create(),pointerPos,prevPointerPos);
+      vec2.scale(mp,mp,INT);
+      if(vec2.sqrLen(mp)>0.1){
+        vec2.add(mp,prevPointerPos,mp);
+        const p=project(mp), q2=project(prevPointerPos);
+        const a=vec3.normalize(vec3.create(),p), b=vec3.normalize(vec3.create(),q2);
+        vec2.copy(prevPointerPos,mp);
+        af*=AA; quatFromVecs(a,b,pointerRot,af);
+      } else { quat.slerp(pointerRot,pointerRot,identQ,INT); }
+    } else {
+      quat.slerp(pointerRot,pointerRot,identQ,0.1*ts);
+      if(snapTarget){
+        const a=snapTarget,b=snapDir;
+        const sq=vec3.squaredDistance(a,b), df=Math.max(0.1,1-sq*10);
+        af*=0.2*df; quatFromVecs(a,b,snapQ,af);
+      }
+    }
+    const cq=quat.multiply(quat.create(),snapQ,pointerRot);
+    quat.multiply(orientation,cq,orientation); quat.normalize(orientation,orientation);
+    quat.slerp(_combinedQ,_combinedQ,cq,0.8*ts); quat.normalize(_combinedQ,_combinedQ);
+    const rad=Math.acos(_combinedQ[3])*2,s=Math.sin(rad/2); let rv=0;
+    if(s>0.000001){rv=rad/(2*Math.PI);rotAxis[0]=_combinedQ[0]/s;rotAxis[1]=_combinedQ[1]/s;rotAxis[2]=_combinedQ[2]/s;}
+    _rotV+=(rv-_rotV)*0.5*ts; smoothRotVel=_rotV/ts;
+  }
+
+  function findNearest(){
+    const inv=quat.conjugate(quat.create(),orientation);
+    const nt=vec3.transformQuat(vec3.create(),snapDir,inv);
+    let maxD=-1,ni=0;
+    for(let i=0;i<instancePositions.length;i++){const d=vec3.dot(nt,instancePositions[i]);if(d>maxD){maxD=d;ni=i;}}
+    return ni;
+  }
+
+  function updateCamera(dt){
+    const ts=dt/TFD+0.0001;
+    let camZ=3, damping=5/ts;
+    const isMoving=isDown||Math.abs(smoothRotVel)>0.01;
+    if(isMoving!==movementActive){ movementActive=isMoving; if(isMoving){popup.classList.add('hidden');popup.classList.remove('visible');} }
+    if(!isDown){
+      const ni=findNearest(); setActiveProject(ni);
+      snapTarget=vec3.normalize(vec3.create(),vec3.transformQuat(vec3.create(),instancePositions[ni],orientation));
+      if(!isMoving){popup.classList.remove('hidden');popup.classList.add('visible');}
+    } else { camZ+=smoothRotVel*80+2.5; damping=7/ts; }
+    camera.pos[2]+=(camZ-camera.pos[2])/damping;
+  }
+
+  function updateProjection(){
+    const w=canvas.clientWidth, h=canvas.clientHeight;
+    const aspect=w/h, ht=SPHERE_R*0.35, d=camera.pos[2];
+    let fov;
+    if(aspect>1) fov=2*Math.atan(ht/d); else fov=2*Math.atan(ht/aspect/d);
+    mat4.perspective(camera.proj,fov,aspect,camera.near,camera.far);
+  }
+
+  function resizeIM(){
+    const dpr=Math.min(2,devicePixelRatio||1);
+    canvas.width=Math.round(canvas.clientWidth*dpr);
+    canvas.height=Math.round(canvas.clientHeight*dpr);
+    gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight);
+    updateProjection();
+  }
+  window.addEventListener('resize',resizeIM); resizeIM();
+
+  const worldMat=mat4.create();
+  let prevTime=0, frames=0;
+
+  function loop(time){
+    const dt=Math.min(32,time-prevTime); prevTime=time;
+    frames+=dt/TFD;
+    updateArcball(dt);
+    updateCamera(dt);
+
+    /* update instance matrices */
+    const scale=0.25, SI=0.6;
+    instancePositions.map(p=>vec3.transformQuat(vec3.create(),p,orientation)).forEach((p,ndx)=>{
+      const s=(Math.abs(p[2])/SPHERE_R)*SI+(1-SI), fs=s*scale;
+      const m=mat4.create();
+      mat4.multiply(m,m,mat4.fromTranslation(mat4.create(),vec3.negate(vec3.create(),p)));
+      mat4.multiply(m,m,mat4.targetTo(mat4.create(),[0,0,0],p,[0,1,0]));
+      mat4.multiply(m,m,mat4.fromScaling(mat4.create(),[fs,fs,fs]));
+      mat4.multiply(m,m,mat4.fromTranslation(mat4.create(),[0,0,-SPHERE_R]));
+      mat4.copy(matsViews[ndx],m);
+    });
+    gl.bindBuffer(gl.ARRAY_BUFFER,instBuf);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,matsArray);
+    gl.bindBuffer(gl.ARRAY_BUFFER,null);
+
+    /* camera matrix */
+    mat4.targetTo(camera.mat,camera.pos,[0,0,0],camera.up);
+    mat4.invert(camera.view,camera.mat);
+    updateProjection();
+
+    /* render */
+    gl.useProgram(prog);
+    gl.enable(gl.CULL_FACE); gl.enable(gl.DEPTH_TEST);
+    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.uniformMatrix4fv(locs.uWorldMatrix,false,worldMat);
+    gl.uniformMatrix4fv(locs.uViewMatrix,false,camera.view);
+    gl.uniformMatrix4fv(locs.uProjectionMatrix,false,camera.proj);
+    gl.uniform3fv(locs.uCameraPosition,camera.pos);
+    gl.uniform4f(locs.uRotationAxisVelocity,rotAxis[0],rotAxis[1],rotAxis[2],smoothRotVel*1.1);
+    gl.uniform1i(locs.uItemCount,PROJECTS.length);
+    gl.uniform1i(locs.uAtlasSize,atlasSize);
+    gl.uniform1f(locs.uFrames,frames);
+    gl.uniform1i(locs.uTex,0);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.bindVertexArray(vao);
+    gl.drawElementsInstanced(gl.TRIANGLES,discIndices.length,gl.UNSIGNED_SHORT,0,DISC_COUNT);
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+
+/* ═══════════════════════════════════════════
+   UI NAV LOGIC
+═══════════════════════════════════════════ */
+const aboutOverlay = document.getElementById('about-overlay');
+const aboutClose   = document.getElementById('about-close');
+const btnWork      = document.getElementById('btn-work');
+const btnAbout     = document.getElementById('btn-about');
+
+btnAbout.addEventListener('click', () => {
+  aboutOverlay.classList.add('show');
+  btnAbout.classList.add('active');
+  btnWork.classList.remove('active');
+});
+aboutClose.addEventListener('click', () => {
+  aboutOverlay.classList.remove('show');
+  btnWork.classList.add('active');
+  btnAbout.classList.remove('active');
+});
+btnWork.addEventListener('click', () => {
+  aboutOverlay.classList.remove('show');
+  btnWork.classList.add('active');
+  btnAbout.classList.remove('active');
+});
+</script>
+</body>
+</html>
