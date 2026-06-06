@@ -161,26 +161,30 @@
   }
   .profile-details {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
     text-align: center;
     z-index: 5;
-    background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 60%);
-    padding: 20px 20px 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.95) 100%);
+    padding: 0 20px 20px;
   }
   .profile-details h3 {
     font-weight: 600;
-    margin: 0;
-    font-size: 1.4rem;
+    margin: 0 0 6px 0;
+    font-size: 1.2rem;
     color: var(--text);
     font-family: var(--font-display);
     letter-spacing: 0.06em;
     line-height: 1.2;
   }
   .profile-details p {
-    display: none;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
   }
   .profile-close-btn {
     position: absolute; top: -36px; right: 0;
@@ -640,6 +644,7 @@
         <img class="profile-avatar" id="profile-avatar" src="./Thumbnails/profile.png" alt="Profile Card">
         <div class="profile-details">
           <h3 id="profile-name">CASTILLO, Marienel F.</h3>
+          <p>INF237-MAA</p>
         </div>
       </div>
     </div>
@@ -667,6 +672,7 @@ const PROJECTS = [
   { title:'Audio Mix', image:'./Thumbnails/AudioMix.png', media:'./Files/Audio Engineering - AUDIO MIX.mp3', type:'audio', description:'Full audio mixing and mastering for multi-track session', tags:['Audio Mix','Mixing','Mastering'] },
   { title:'Foley', image:'./Thumbnails/Foley.png', media:'https://drive.google.com/file/d/1PvfjnEl--E-g6jm6wkqxWRXGn9K_hTMY/view?usp=sharing', type:'video', description:'Custom foley sound design and environmental sound creation', tags:['Foley','Sound Design','Sync'] },
   { title:'Dialogue', image:'./Thumbnails/Dialogue.png', media:'', type:'audio', description:'Professional dialogue recording, editing and processing', tags:['Dialogue','Recording','Post'] },
+  { title:'Masterpiece', image:'./Thumbnails/Masterpiece.png', media:'', type:'video', description:'Coming soon', tags:['Masterpiece','Project'] },
 ];
 document.getElementById('bb-count').textContent =
   PROJECTS.length.toString().padStart(2,'0') + ' Projects';
@@ -988,13 +994,8 @@ document.getElementById('bb-count').textContent =
     } else if (p.type === 'audio' && p.media) {
       // Audio player with spinning disc
       mpDiscContainer.style.display = 'flex';
-      mpDiscContainer.innerHTML = `
-        <div class="mp-disc" id="mp-disc">
-          <img id="mp-disc-image" src="${p.image}" alt="">
-        </div>
-        <div class="mp-disc-center"></div>
-      `;
       mpControls.style.display = 'flex';
+      mpDiscImage.src = p.image;
       
       // Stop previous audio if any
       if (audioElement) {
@@ -1018,29 +1019,25 @@ document.getElementById('bb-count').textContent =
         mpCurrentTime.textContent = formatTime(audioElement.currentTime);
         
         if (audioElement.playing) {
-          const disc = document.getElementById('mp-disc');
-          if (disc) disc.classList.add('playing');
+          mpDisc.classList.add('playing');
         }
       });
       
       // Update play button when audio ends
       audioElement.addEventListener('ended', () => {
         mpPlayBtn.textContent = '▶ PLAY';
-        const disc = document.getElementById('mp-disc');
-        if (disc) disc.classList.remove('playing');
+        mpDisc.classList.remove('playing');
       });
       
       // Update play button state
       audioElement.addEventListener('play', () => {
         mpPlayBtn.textContent = '⏸ PAUSE';
-        const disc = document.getElementById('mp-disc');
-        if (disc) disc.classList.add('playing');
+        mpDisc.classList.add('playing');
       });
       
       audioElement.addEventListener('pause', () => {
         mpPlayBtn.textContent = '▶ PLAY';
-        const disc = document.getElementById('mp-disc');
-        if (disc) disc.classList.remove('playing');
+        mpDisc.classList.remove('playing');
       });
     }
 
@@ -1090,6 +1087,7 @@ document.getElementById('bb-count').textContent =
   let lastClickTime = 0;
   let clickStartPos = {x: 0, y: 0};
   const CLICK_DISTANCE_THRESHOLD = 12; // pixels - threshold to distinguish click from drag
+  const MENU_CLICK_RADIUS = 350; // pixels - only allow clicks within this radius from center
   
   canvas.addEventListener('mousedown', (e) => {
     lastClickTime = performance.now();
@@ -1104,16 +1102,27 @@ document.getElementById('bb-count').textContent =
     
     // Only trigger if click was quick (not dragging) AND mouse barely moved
     if (performance.now() - lastClickTime < 300 && distance < CLICK_DISTANCE_THRESHOLD) {
-      setTimeout(() => {
-        try {
-          // Try to open media player if not spinning rapidly
-          if (typeof smoothRotVel !== 'undefined' && Math.abs(smoothRotVel) < 0.1) {
-            openMediaPlayer(findNearest());
+      // Check if click is within the menu area (circle in center of screen)
+      const rect = canvas.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      const distFromCenter = Math.sqrt((clickX - centerX) ** 2 + (clickY - centerY) ** 2);
+      
+      // Only open media player if click is within the menu circle
+      if (distFromCenter <= MENU_CLICK_RADIUS) {
+        setTimeout(() => {
+          try {
+            // Try to open media player if not spinning rapidly
+            if (typeof smoothRotVel !== 'undefined' && Math.abs(smoothRotVel) < 0.1) {
+              openMediaPlayer(findNearest());
+            }
+          } catch(err) {
+            console.error('Error opening media player:', err);
           }
-        } catch(err) {
-          console.error('Error opening media player:', err);
-        }
-      }, 50);
+        }, 50);
+      }
     }
   });
 
@@ -1442,7 +1451,7 @@ const profileAvatar = document.getElementById('profile-avatar');
 // Update profile card data
 function updateProfileCard(data) {
   profileName.textContent = data.name || 'CASTILLO, Marienel F.';
-  profileAvatar.src = data.avatar || './Thumbnails/Remix.png';
+  profileAvatar.src = data.avatar || './Thumbnails/profile.png';
 }
 
 // Profile card handlers
@@ -1471,7 +1480,7 @@ profileCardOverlay.addEventListener('click', (e) => {
 // Initialize profile card with default data
 updateProfileCard({
   name: 'CASTILLO, Marienel F.',
-  avatar: './Thumbnails/Remix.png'
+  avatar: './Thumbnails/profile.png'
 });
 
 btnAbout.addEventListener('click', () => {
