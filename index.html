@@ -637,7 +637,7 @@
     <button class="profile-close-btn" id="profile-close">[ CLOSE ]</button>
     <div class="profile-card-shell">
       <div class="profile-card">
-        <img class="profile-avatar" id="profile-avatar" src="./Thumbnails/Remix.png" alt="Profile Card">
+        <img class="profile-avatar" id="profile-avatar" src="./Thumbnails/profile.png" alt="Profile Card">
         <div class="profile-details">
           <h3 id="profile-name">CASTILLO, Marienel F.</h3>
         </div>
@@ -664,7 +664,7 @@ const PROJECTS = [
   { title:'Cut Up', image:'./Thumbnails/CutUp.png', media:'./Files/Audio Engineering - CUTUP.mp3', type:'audio', description:'Experimental cut-up technique composition', tags:['Cut Up','Experimental','Technique'] },
   { title:'Beat Matching', image:'./Thumbnails/BeatMatch.png', media:'./Files/Audio Engineering - BEAT MATCHING.mp3', type:'audio', description:'Precision beat matching and tempo synchronization work', tags:['Beat Match','Production','Mixing'] },
   { title:'Mashup', image:'./Thumbnails/Mashup.png', media:'./Files/Audio Engineering - MASHUP.mp3', type:'audio', description:'Creative mashup blending multiple tracks into cohesive composition', tags:['Mashup','Mix','Creative'] },
-  { title:'Audio Mix', image:'./Thumbnails/AudioMix.png', media:'', type:'audio', description:'Full audio mixing and mastering for multi-track session', tags:['Audio Mix','Mixing','Mastering'] },
+  { title:'Audio Mix', image:'./Thumbnails/AudioMix.png', media:'./Files/Audio Engineering - AUDIO MIX.mp3', type:'audio', description:'Full audio mixing and mastering for multi-track session', tags:['Audio Mix','Mixing','Mastering'] },
   { title:'Foley', image:'./Thumbnails/Foley.png', media:'https://drive.google.com/file/d/1PvfjnEl--E-g6jm6wkqxWRXGn9K_hTMY/view?usp=sharing', type:'video', description:'Custom foley sound design and environmental sound creation', tags:['Foley','Sound Design','Sync'] },
   { title:'Dialogue', image:'./Thumbnails/Dialogue.png', media:'', type:'audio', description:'Professional dialogue recording, editing and processing', tags:['Dialogue','Recording','Post'] },
 ];
@@ -963,6 +963,15 @@ document.getElementById('bb-count').textContent =
     mpControls.style.display = 'none';
     mpCard.classList.remove('video-large');
 
+    if (!p.media) {
+      // No media available - show a message
+      mpDiscContainer.innerHTML = '<div style="color: var(--muted); text-align: center; font-family: var(--font-mono); font-size: 0.9rem;">Media not available yet</div>';
+      mpDiscContainer.style.display = 'flex';
+      mpDiscContainer.style.alignItems = 'center';
+      mpDiscContainer.style.justifyContent = 'center';
+      return;
+    }
+
     if (p.type === 'video') {
       // Video player for Dubbing
       mpVideoContainer.style.display = 'block';
@@ -979,8 +988,13 @@ document.getElementById('bb-count').textContent =
     } else if (p.type === 'audio' && p.media) {
       // Audio player with spinning disc
       mpDiscContainer.style.display = 'flex';
+      mpDiscContainer.innerHTML = `
+        <div class="mp-disc" id="mp-disc">
+          <img id="mp-disc-image" src="${p.image}" alt="">
+        </div>
+        <div class="mp-disc-center"></div>
+      `;
       mpControls.style.display = 'flex';
-      mpDiscImage.src = p.image;
       
       // Stop previous audio if any
       if (audioElement) {
@@ -1004,25 +1018,29 @@ document.getElementById('bb-count').textContent =
         mpCurrentTime.textContent = formatTime(audioElement.currentTime);
         
         if (audioElement.playing) {
-          mpDisc.classList.add('playing');
+          const disc = document.getElementById('mp-disc');
+          if (disc) disc.classList.add('playing');
         }
       });
       
       // Update play button when audio ends
       audioElement.addEventListener('ended', () => {
         mpPlayBtn.textContent = '▶ PLAY';
-        mpDisc.classList.remove('playing');
+        const disc = document.getElementById('mp-disc');
+        if (disc) disc.classList.remove('playing');
       });
       
       // Update play button state
       audioElement.addEventListener('play', () => {
         mpPlayBtn.textContent = '⏸ PAUSE';
-        mpDisc.classList.add('playing');
+        const disc = document.getElementById('mp-disc');
+        if (disc) disc.classList.add('playing');
       });
       
       audioElement.addEventListener('pause', () => {
         mpPlayBtn.textContent = '▶ PLAY';
-        mpDisc.classList.remove('playing');
+        const disc = document.getElementById('mp-disc');
+        if (disc) disc.classList.remove('playing');
       });
     }
 
