@@ -192,6 +192,174 @@
     padding: 5px 12px; border-radius: 2px; text-transform: uppercase;
   }
 
+  /* ── MEDIA PLAYER POPUP ── */
+  .media-player-popup {
+    position: fixed; inset: 0; z-index: 25;
+    background: rgba(6,1,15,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .media-player-popup.open {
+    opacity: 1; pointer-events: auto;
+  }
+  .mp-card {
+    position: relative; width: 90%; max-width: 500px;
+    border: 1px solid var(--accent-dim);
+    background: rgba(26,5,51,0.8);
+    padding: 48px;
+    border-radius: 8px;
+  }
+  .mp-card.video-large {
+    max-width: 720px;
+    padding: 32px;
+  }
+  .mp-close {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 0.68rem;
+    color: var(--muted); letter-spacing: 0.2em;
+    transition: color 0.2s; text-transform: uppercase;
+  }
+  .mp-close:hover { color: var(--accent); }
+  .mp-title {
+    font-family: var(--font-display);
+    font-size: 2.2rem; letter-spacing: 0.06em;
+    color: var(--text); margin-bottom: 32px;
+  }
+  .mp-container {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 24px;
+  }
+
+  /* Audio player with spinning disc */
+  .mp-disc-container {
+    position: relative;
+    width: 240px; height: 240px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+  }
+  .mp-disc {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(192,132,252,0.3), rgba(192,132,252,0.1), rgba(0,0,0,0.5));
+    border: 2px solid var(--accent-dim);
+    overflow: hidden;
+    animation: spinDisc 8s linear infinite;
+    animation-play-state: paused;
+  }
+  .mp-disc.playing { animation-play-state: running; }
+  .mp-disc img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .mp-disc-center {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, var(--accent-dim) 70%, transparent 100%);
+    pointer-events: none;
+  }
+  @keyframes spinDisc {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Video player */
+  .mp-video-container {
+    position: relative;
+    width: 100%; aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .mp-video-container video {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+
+  /* Audio/Video controls */
+  .mp-controls {
+    width: 100%;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .mp-playbar {
+    width: 100%;
+  }
+  .mp-playbar input[type="range"] {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--accent-dim);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .mp-playbar input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .mp-playbar input[type="range"]::-moz-range-thumb {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer; border: none;
+  }
+
+  .mp-controls-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .mp-btn {
+    background: none; border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font-mono); font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .mp-btn:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+  .mp-btn.play-btn {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 0.75rem;
+  }
+  .mp-time {
+    font-family: var(--font-mono); font-size: 0.6rem;
+    color: var(--muted);
+    min-width: 60px; text-align: center;
+  }
+  .mp-volume {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mp-volume input[type="range"] {
+    width: 80px; height: 3px;
+  }
+
+  .mp-tags {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    margin-top: 24px; padding-top: 24px;
+    border-top: 1px solid var(--accent-dim);
+  }
+  .mp-tag {
+    font-family: var(--font-mono); font-size: 0.53rem;
+    letter-spacing: 0.14em; color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 3px 8px; border-radius: 2px; text-transform: uppercase;
+  }
+
   /* ── ACTIVE ITEM POPUP (bottom center) ── */
   .active-popup {
     position: fixed; bottom: 64px; left: 50%;
@@ -300,7 +468,51 @@
   </div>
 </div>
 
-<!-- THREE.js for LiquidEther -->
+<!-- MEDIA PLAYER POPUP -->
+<div class="media-player-popup" id="media-player-popup">
+  <div class="mp-card" id="mp-card">
+    <button class="mp-close" id="mp-close">[ CLOSE ]</button>
+    <h2 class="mp-title" id="mp-title">Title</h2>
+    
+    <div class="mp-container">
+      <!-- Audio disc spinner -->
+      <div class="mp-disc-container" id="mp-disc-container" style="display: none;">
+        <div class="mp-disc" id="mp-disc">
+          <img id="mp-disc-image" src="" alt="">
+        </div>
+        <div class="mp-disc-center"></div>
+      </div>
+
+      <!-- Video player -->
+      <div class="mp-video-container" id="mp-video-container" style="display: none;">
+        <video id="mp-video" controls>
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <!-- Audio controls -->
+      <div class="mp-controls" id="mp-controls" style="display: none;">
+        <div class="mp-playbar">
+          <input type="range" id="mp-progress" min="0" max="100" value="0" />
+        </div>
+        <div class="mp-controls-row">
+          <button class="mp-btn play-btn" id="mp-play-btn">▶ PLAY</button>
+          <div class="mp-time">
+            <span id="mp-current-time">0:00</span> / <span id="mp-duration">0:00</span>
+          </div>
+          <div class="mp-volume">
+            <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted);">🔊</span>
+            <input type="range" id="mp-volume" min="0" max="100" value="70" />
+          </div>
+        </div>
+      </div>
+
+      <div class="mp-tags" id="mp-tags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden audio element for playback -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- gl-matrix for InfiniteMenu -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
@@ -309,15 +521,18 @@
 'use strict';
 
 /* ═══════════════════════════════════════════
-   PROJECT DATA  — edit this!
+   PROJECT DATA  — All 9 Portfolio Items
 ═══════════════════════════════════════════ */
 const PROJECTS = [
-  { image:'https://picsum.photos/seed/liveA/500/500', title:'Live Mix Vol. 1',    description:'Club-ready house set recorded live at Studio A', tags:['Live Mix','House','Recorded'] },
-  { image:'https://picsum.photos/seed/foleyB/500/500', title:'Foley Design',       description:'Environmental sound design for short film "Dusk"',  tags:['Foley','Film','Sound Design'] },
-  { image:'https://picsum.photos/seed/master/500/500', title:'Mastering: EP',      description:'Full mastering chain on a 6-track indie EP',          tags:['Mastering','Indie','Loudness'] },
-  { image:'https://picsum.photos/seed/podX/500/500',   title:'Podcast Suite',      description:'Recording, editing & noise reduction — 12 episodes',  tags:['Podcast','Editing','Post'] },
-  { image:'https://picsum.photos/seed/field9/500/500', title:'Field Recording',    description:'Ambisonic capture in Batangas rainforest',            tags:['Field Rec','Spatial','Ambisonic'] },
-  { image:'https://picsum.photos/seed/band7/500/500',  title:'Band Session',       description:'Full tracking & mixing of a 4-piece rock band',       tags:['Recording','Mixing','Rock'] },
+  { title:'Remix', image:'./Thumbnails/Remix.png', media:'./Files/Audio Engineering - REMIX.mp3', type:'audio', description:'Professional remix composition featuring layered production and electronic elements', tags:['Remix','Production','Electronic'] },
+  { title:'Medley', image:'./Thumbnails/Medley.png', media:'./Files/Audio Engineering - MEDLEY.mp3', type:'audio', description:'Curated medley blending multiple musical styles and influences', tags:['Medley','Mix','Composition'] },
+  { title:'Dubbing', image:'./Thumbnails/Dubbing.png', media:'https://drive.google.com/file/d/1E0ghfUvau2AWsfOjbm0cM0Di_y5iDLsH/view?usp=sharing', type:'video', description:'Video dubbing and voice-over production with synchronized audio', tags:['Dubbing','Video','Sync'] },
+  { title:'Cut Up', image:'./Thumbnails/CutUp.png', media:'', type:'audio', description:'Experimental cut-up technique composition', tags:['Cut Up','Experimental','Technique'] },
+  { title:'Beat Matching', image:'./Thumbnails/BeatMatch.png', media:'./Files/Audio Engineering - BEAT MATCHING.mp3', type:'audio', description:'Precision beat matching and tempo synchronization work', tags:['Beat Match','Production','Mixing'] },
+  { title:'Mashup', image:'./Thumbnails/Mashup.png', media:'./Files/Audio Engineering - MASHUP.mp3', type:'audio', description:'Creative mashup blending multiple tracks into cohesive composition', tags:['Mashup','Mix','Creative'] },
+  { title:'Audio Mix', image:'./Thumbnails/AudioMix.png', media:'', type:'audio', description:'Full audio mixing and mastering for multi-track session', tags:['Audio Mix','Mixing','Mastering'] },
+  { title:'Foley', image:'./Thumbnails/Foley.png', media:'', type:'audio', description:'Custom foley sound design and environmental sound creation', tags:['Foley','Sound Design','Sync'] },
+  { title:'Dialogue', image:'./Thumbnails/Dialogue.png', media:'', type:'audio', description:'Professional dialogue recording, editing and processing', tags:['Dialogue','Recording','Post'] },
 ];
 document.getElementById('bb-count').textContent =
   PROJECTS.length.toString().padStart(2,'0') + ' Projects';
@@ -417,8 +632,8 @@ document.getElementById('bb-count').textContent =
   const col_frag  = `precision highp float;uniform sampler2D velocity;uniform sampler2D palette;uniform vec4 bgColor;varying vec2 uv;void main(){vec2 vel=texture2D(velocity,uv).xy;float lenv=clamp(length(vel),0.0,1.0);vec3 c=texture2D(palette,vec2(lenv,.5)).rgb;gl_FragColor=vec4(mix(bgColor.rgb,c,lenv),mix(bgColor.a,1.0,lenv));}`;
   const div_frag  = `precision highp float;uniform sampler2D velocity;uniform float dt;uniform vec2 px;varying vec2 uv;void main(){float x0=texture2D(velocity,uv-vec2(px.x,0)).x,x1=texture2D(velocity,uv+vec2(px.x,0)).x,y0=texture2D(velocity,uv-vec2(0,px.y)).y,y1=texture2D(velocity,uv+vec2(0,px.y)).y;gl_FragColor=vec4((x1-x0+y1-y0)/2.0/dt);}`;
   const ext_frag  = `precision highp float;uniform vec2 force;uniform vec2 center;uniform vec2 scale;uniform vec2 px;varying vec2 vUv;void main(){vec2 c=(vUv-.5)*2.;float d=1.-min(length(c),1.);gl_FragColor=vec4(force*d*d,0,1);}`;
-  const poi_frag  = `precision highp float;uniform sampler2D pressure;uniform sampler2D divergence;uniform vec2 px;varying vec2 uv;void main(){float p0=texture2D(pressure,uv+vec2(px.x*2,0)).r,p1=texture2D(pressure,uv-vec2(px.x*2,0)).r,p2=texture2D(pressure,uv+vec2(0,px.y*2)).r,p3=texture2D(pressure,uv-vec2(0,px.y*2)).r,div=texture2D(divergence,uv).r;gl_FragColor=vec4((p0+p1+p2+p3)/4.0-div);}`;
-  const prs_frag  = `precision highp float;uniform sampler2D pressure;uniform sampler2D velocity;uniform vec2 px;uniform float dt;varying vec2 uv;void main(){float p0=texture2D(pressure,uv+vec2(px.x,0)).r,p1=texture2D(pressure,uv-vec2(px.x,0)).r,p2=texture2D(pressure,uv+vec2(0,px.y)).r,p3=texture2D(pressure,uv-vec2(0,px.y)).r;vec2 v=texture2D(velocity,uv).xy-vec2(p0-p1,p2-p3)*.5*dt;gl_FragColor=vec4(v,0,1);}`;
+  const poi_frag  = `precision highp float;uniform sampler2D pressure;uniform sampler2D divergence;uniform vec2 px;varying vec2 uv;void main(){float p0=texture2D(pressure,uv+vec2(px.x*2.0,0.0)).r,p1=texture2D(pressure,uv-vec2(px.x*2.0,0.0)).r,p2=texture2D(pressure,uv+vec2(0.0,px.y*2.0)).r,p3=texture2D(pressure,uv-vec2(0.0,px.y*2.0)).r,div=texture2D(divergence,uv).r;gl_FragColor=vec4((p0+p1+p2+p3)/4.0-div);}`;
+  const prs_frag  = `precision highp float;uniform sampler2D pressure;uniform sampler2D velocity;uniform vec2 px;uniform float dt;varying vec2 uv;void main(){float p0=texture2D(pressure,uv+vec2(px.x,0.0)).r,p1=texture2D(pressure,uv-vec2(px.x,0.0)).r,p2=texture2D(pressure,uv+vec2(0.0,px.y)).r,p3=texture2D(pressure,uv-vec2(0.0,px.y)).r;vec2 v=texture2D(velocity,uv).xy-vec2(p0-p1,p2-p3)*.5*dt;gl_FragColor=vec4(v,0.0,1.0);}`;
 
   function makePass(vsh,fsh,uniforms) {
     const sc = new THREE.Scene(), cam = new THREE.Camera();
@@ -547,6 +762,13 @@ document.getElementById('bb-count').textContent =
    INFINITE MENU  (gl-matrix — no imports)
 ═══════════════════════════════════════════ */
 (function initInfiniteMenu() {
+  // MUST destructure glMatrix first before using vec3, mat4, etc
+  const mat4 = window.mat4;
+  const quat = window.quat;
+  const vec2 = window.vec2;
+  const vec3 = window.vec3;
+
+
   const canvas = document.getElementById('im-canvas');
   const popup  = document.getElementById('active-popup');
   const apTitle= document.getElementById('ap-title');
@@ -554,6 +776,124 @@ document.getElementById('bb-count').textContent =
   const siTitle = document.getElementById('si-title');
   const siDesc  = document.getElementById('si-desc');
   const siTags  = document.getElementById('si-tags');
+
+  // Media player elements
+  const mediaPlayerPopup = document.getElementById('media-player-popup');
+  const mpClose = document.getElementById('mp-close');
+  const mpTitle = document.getElementById('mp-title');
+  const mpCard = document.getElementById('mp-card');
+  const mpDiscContainer = document.getElementById('mp-disc-container');
+  const mpDisc = document.getElementById('mp-disc');
+  const mpDiscImage = document.getElementById('mp-disc-image');
+  const mpVideoContainer = document.getElementById('mp-video-container');
+  const mpVideo = document.getElementById('mp-video');
+  const mpControls = document.getElementById('mp-controls');
+  const mpPlayBtn = document.getElementById('mp-play-btn');
+  const mpProgress = document.getElementById('mp-progress');
+  const mpCurrentTime = document.getElementById('mp-current-time');
+  const mpDuration = document.getElementById('mp-duration');
+  const mpVolume = document.getElementById('mp-volume');
+  const mpTags = document.getElementById('mp-tags');
+
+  let audioElement = null;
+  let currentProjectIdx = 0;
+
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function closeMediaPlayer() {
+    mediaPlayerPopup.classList.remove('open');
+    if (audioElement) {
+      audioElement.pause();
+      audioElement = null;
+    }
+    if (mpVideo.src) {
+      mpVideo.pause();
+    }
+  }
+
+  function openMediaPlayer(idx) {
+    const p = PROJECTS[idx % PROJECTS.length];
+    currentProjectIdx = idx;
+    
+    mpTitle.textContent = p.title;
+    mpTags.innerHTML = p.tags.map(t => `<span class="mp-tag">${t}</span>`).join('');
+
+    // Reset all displays
+    mpDiscContainer.style.display = 'none';
+    mpVideoContainer.style.display = 'none';
+    mpControls.style.display = 'none';
+    mpCard.classList.remove('video-large');
+
+    if (p.type === 'video') {
+      // Video player for Dubbing
+      mpVideoContainer.style.display = 'block';
+      mpCard.classList.add('video-large');
+      
+      // Extract video ID from Google Drive link
+      const driveMatch = p.media.match(/\/d\/([a-zA-Z0-9-_]+)\//);
+      if (driveMatch) {
+        const videoId = driveMatch[1];
+        mpVideo.src = `https://drive.google.com/file/d/${videoId}/preview`;
+        // Use iframe embed instead for better compatibility
+        mpVideoContainer.innerHTML = `<iframe src="https://drive.google.com/file/d/${videoId}/preview" width="100%" height="100%" style="border:none;" allow="autoplay"></iframe>`;
+      }
+    } else if (p.type === 'audio' && p.media) {
+      // Audio player with spinning disc
+      mpDiscContainer.style.display = 'flex';
+      mpControls.style.display = 'flex';
+      mpDiscImage.src = p.image;
+      
+      // Stop previous audio if any
+      if (audioElement) {
+        audioElement.pause();
+      }
+      
+      // Create new audio element
+      audioElement = new Audio();
+      audioElement.src = p.media;
+      audioElement.volume = mpVolume.value / 100;
+      
+      // Update duration when loaded
+      audioElement.addEventListener('loadedmetadata', () => {
+        mpDuration.textContent = formatTime(audioElement.duration);
+        mpProgress.max = audioElement.duration;
+      });
+      
+      // Update progress bar and time
+      audioElement.addEventListener('timeupdate', () => {
+        mpProgress.value = audioElement.currentTime;
+        mpCurrentTime.textContent = formatTime(audioElement.currentTime);
+        
+        if (audioElement.playing) {
+          mpDisc.classList.add('playing');
+        }
+      });
+      
+      // Update play button when audio ends
+      audioElement.addEventListener('ended', () => {
+        mpPlayBtn.textContent = '▶ PLAY';
+        mpDisc.classList.remove('playing');
+      });
+      
+      // Update play button state
+      audioElement.addEventListener('play', () => {
+        mpPlayBtn.textContent = '⏸ PAUSE';
+        mpDisc.classList.add('playing');
+      });
+      
+      audioElement.addEventListener('pause', () => {
+        mpPlayBtn.textContent = '▶ PLAY';
+        mpDisc.classList.remove('playing');
+      });
+    }
+
+    mediaPlayerPopup.classList.add('open');
+  }
 
   function setActiveProject(idx) {
     const p = PROJECTS[idx % PROJECTS.length];
@@ -564,9 +904,68 @@ document.getElementById('bb-count').textContent =
     siTags.innerHTML    = p.tags.map(t=>`<span class="si-tag">${t}</span>`).join('');
     sideInfo.classList.remove('hide');
   }
-  setActiveProject(0);
 
-  const { mat4, quat, vec2, vec3 } = glMatrix;
+  // Media player controls
+  mpClose.addEventListener('click', closeMediaPlayer);
+  
+  mpPlayBtn.addEventListener('click', () => {
+    if (audioElement) {
+      if (audioElement.paused) {
+        audioElement.play();
+      } else {
+        audioElement.pause();
+      }
+    }
+  });
+
+  mpProgress.addEventListener('change', () => {
+    if (audioElement) {
+      audioElement.currentTime = mpProgress.value;
+    }
+  });
+
+  mpVolume.addEventListener('input', () => {
+    if (audioElement) {
+      audioElement.volume = mpVolume.value / 100;
+    }
+  });
+
+  // Expose to global scope for easier access
+  window.openMediaPlayerById = openMediaPlayer;
+  window.findNearestItem = findNearest;
+
+  // Click on menu item to open media player
+  let lastClickTime = 0;
+  let clickStartPos = {x: 0, y: 0};
+  const CLICK_DISTANCE_THRESHOLD = 12; // pixels - threshold to distinguish click from drag
+  
+  canvas.addEventListener('mousedown', (e) => {
+    lastClickTime = performance.now();
+    clickStartPos = {x: e.clientX, y: e.clientY};
+  });
+  
+  canvas.addEventListener('mouseup', (e) => {
+    // Calculate distance moved
+    const deltaX = e.clientX - clickStartPos.x;
+    const deltaY = e.clientY - clickStartPos.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Only trigger if click was quick (not dragging) AND mouse barely moved
+    if (performance.now() - lastClickTime < 300 && distance < CLICK_DISTANCE_THRESHOLD) {
+      setTimeout(() => {
+        try {
+          // Try to open media player if not spinning rapidly
+          if (typeof smoothRotVel !== 'undefined' && Math.abs(smoothRotVel) < 0.1) {
+            openMediaPlayer(findNearest());
+          }
+        } catch(err) {
+          console.error('Error opening media player:', err);
+        }
+      }, 50);
+    }
+  });
+
+  setActiveProject(0);
 
   /* ── shaders ── */
   const DISC_VERT = `#version 300 es
@@ -699,10 +1098,15 @@ void main(){
   const atlasCv=document.createElement('canvas');
   const atlasCtx=atlasCv.getContext('2d');
   const CELL=512; atlasCv.width=atlasSize*CELL; atlasCv.height=atlasSize*CELL;
-  Promise.all(PROJECTS.map(p=>new Promise(res=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>res(img);img.onerror=()=>res(null);img.src=p.image;}))).then(imgs=>{
-    imgs.forEach((img,i)=>{if(!img)return;const x=(i%atlasSize)*CELL,y=Math.floor(i/atlasSize)*CELL;atlasCtx.drawImage(img,x,y,CELL,CELL);});
+  console.log('[InfiniteMenu] Texture atlas setup:', { atlasSize, totalSize: `${atlasCv.width}x${atlasCv.height}`, projectCount: PROJECTS.length });
+  
+  Promise.all(PROJECTS.map(p=>new Promise(res=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{console.log('[InfiniteMenu] Image loaded:', p.title, p.image);res(img);};img.onerror=()=>{console.warn('[InfiniteMenu] Image failed to load:', p.title, p.image);res(null);};img.src=p.image;}))).then(imgs=>{
+    let loadedCount=0;
+    imgs.forEach((img,i)=>{if(!img){console.log('[InfiniteMenu] Skipping missing image for item', i);return;}loadedCount++;const x=(i%atlasSize)*CELL,y=Math.floor(i/atlasSize)*CELL;atlasCtx.drawImage(img,x,y,CELL,CELL);});
+    console.log('[InfiniteMenu] Texture atlas created:', { loadedCount: `${loadedCount}/${PROJECTS.length}`, canvasSize: `${atlasCv.width}x${atlasCv.height}` });
     gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);gl.generateMipmap(gl.TEXTURE_2D);
-  });
+    console.log('[InfiniteMenu] ✓ Texture atlas uploaded to GPU');
+  }).catch(err=>console.error('[InfiniteMenu] Atlas loading error:', err));
 
   /* ── camera & arcball ── */
   const camera = {
@@ -865,7 +1269,7 @@ void main(){
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
-})();
+})(); // END infinite menu
 
 
 /* ═══════════════════════════════════════════
