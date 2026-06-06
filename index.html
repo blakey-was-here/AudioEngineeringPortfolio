@@ -73,6 +73,124 @@
   }
   .nav-link:hover, .nav-link.active { color: var(--accent); }
 
+  /* ── PROFILE CARD OVERLAY ── */
+  .profile-card-overlay {
+    position: fixed; inset: 0; z-index: 30;
+    background: rgba(6,1,15,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .profile-card-overlay.show {
+    opacity: 1; pointer-events: auto;
+  }
+  .profile-card-container {
+    position: relative;
+    width: 90%;
+    max-width: 360px;
+    max-height: 80vh;
+  }
+  .profile-card-shell {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .profile-card {
+    width: 100%;
+    aspect-ratio: 0.718;
+    border-radius: 20px;
+    position: relative;
+    background: #000;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 40px var(--accent);
+    overflow: hidden;
+  }
+  .profile-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(96,73,110,0.2) 0%, rgba(113,196,255,0.05) 100%);
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  .profile-card-inside {
+    display: none;
+  }
+  .profile-card-shine {
+    display: none;
+  }
+  .profile-card-glare {
+    display: none;
+  }
+  .profile-avatar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+  }
+  .profile-user-info {
+    display: none;
+  }
+  .profile-user-details {
+    display: none;
+  }
+  .profile-mini-avatar {
+    display: none;
+  }
+  .profile-mini-avatar img {
+    display: none;
+  }
+  .profile-user-text {
+    display: none;
+  }
+  .profile-handle {
+    display: none;
+  }
+  .profile-status {
+    display: none;
+  }
+  .profile-contact-btn {
+    display: none;
+  }
+  .profile-contact-btn:hover {
+    display: none;
+  }
+  .profile-details {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 5;
+    background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 60%);
+    padding: 20px 20px 0;
+  }
+  .profile-details h3 {
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--text);
+    font-family: var(--font-display);
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+  }
+  .profile-details p {
+    display: none;
+  }
+  .profile-close-btn {
+    position: absolute; top: -36px; right: 0;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 0.65rem;
+    color: var(--muted); letter-spacing: 0.2em;
+    transition: color 0.2s; text-transform: uppercase;
+    z-index: 11;
+  }
+  .profile-close-btn:hover { color: var(--accent); }
+
   /* ── HERO ── */
   .hero {
     position: fixed; bottom: 0; left: 0; z-index: 10;
@@ -420,7 +538,7 @@
   <div class="nav-links">
     <button class="nav-link active" id="btn-work">Work</button>
     <button class="nav-link" id="btn-about">About</button>
-    <button class="nav-link" onclick="window.location='mailto:you@email.com'">Contact</button>
+    <button class="nav-link" id="btn-profile">Profile</button>
   </div>
 </nav>
 
@@ -508,6 +626,21 @@
       </div>
 
       <div class="mp-tags" id="mp-tags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE CARD OVERLAY -->
+<div class="profile-card-overlay" id="profile-card-overlay">
+  <div class="profile-card-container" id="profile-card-container">
+    <button class="profile-close-btn" id="profile-close">[ CLOSE ]</button>
+    <div class="profile-card-shell">
+      <div class="profile-card">
+        <img class="profile-avatar" id="profile-avatar" src="./Thumbnails/Remix.png" alt="Profile Card">
+        <div class="profile-details">
+          <h3 id="profile-name">CASTILLO, Marienel F.</h3>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1279,21 +1412,67 @@ const aboutOverlay = document.getElementById('about-overlay');
 const aboutClose   = document.getElementById('about-close');
 const btnWork      = document.getElementById('btn-work');
 const btnAbout     = document.getElementById('btn-about');
+const btnProfile   = document.getElementById('btn-profile');
+
+// Profile card elements
+const profileCardOverlay = document.getElementById('profile-card-overlay');
+const profileClose = document.getElementById('profile-close');
+const profileName = document.getElementById('profile-name');
+const profileAvatar = document.getElementById('profile-avatar');
+
+// Update profile card data
+function updateProfileCard(data) {
+  profileName.textContent = data.name || 'CASTILLO, Marienel F.';
+  profileAvatar.src = data.avatar || './Thumbnails/Remix.png';
+}
+
+// Profile card handlers
+function openProfileCard() {
+  profileCardOverlay.classList.add('show');
+  btnProfile.classList.add('active');
+  btnAbout.classList.remove('active');
+  btnWork.classList.remove('active');
+}
+
+function closeProfileCard() {
+  profileCardOverlay.classList.remove('show');
+  btnProfile.classList.remove('active');
+  btnWork.classList.add('active');
+}
+
+btnProfile.addEventListener('click', openProfileCard);
+profileClose.addEventListener('click', closeProfileCard);
+
+profileCardOverlay.addEventListener('click', (e) => {
+  if (e.target === profileCardOverlay) {
+    closeProfileCard();
+  }
+});
+
+// Initialize profile card with default data
+updateProfileCard({
+  name: 'CASTILLO, Marienel F.',
+  avatar: './Thumbnails/Remix.png'
+});
 
 btnAbout.addEventListener('click', () => {
   aboutOverlay.classList.add('show');
   btnAbout.classList.add('active');
   btnWork.classList.remove('active');
+  btnProfile.classList.remove('active');
 });
 aboutClose.addEventListener('click', () => {
   aboutOverlay.classList.remove('show');
   btnWork.classList.add('active');
   btnAbout.classList.remove('active');
+  btnProfile.classList.remove('active');
 });
 btnWork.addEventListener('click', () => {
   aboutOverlay.classList.remove('show');
+  profileCardOverlay.classList.remove('show');
   btnWork.classList.add('active');
   btnAbout.classList.remove('active');
+  btnProfile.classList.remove('active');
 });
 </script>
 </body>
